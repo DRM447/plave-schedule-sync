@@ -8,25 +8,33 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 봇에게 파일을 새로 쓰고 저장할 수 있는 강력한 권한을 줍니다
+    permissions:
+      contents: write
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5   # <--- 이 부분에 actions/ 가 빠져있었습니다!
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests ics pytz
 
       - name: Run Crawler
         run: python crawler.py
 
       - name: Commit and Push
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # 강제로 모든 변화(새 파일 생성 포함)를 담습니다
           git add -A
-          git commit -m "Auto-update schedule" || echo "No changes to commit"
+          # 변경사항이 있으면 커밋하고, 없어도 에러 없이 넘어가게 합니다
+          git commit -m "Auto-update schedule" || exit 0
           git push
