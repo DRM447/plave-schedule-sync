@@ -13,7 +13,14 @@ def fetch_and_convert():
     # 2. 계산된 연도(now.year)와 월(now.month)을 API 주소에 자동으로 끼워 넣습니다! (f-string 사용)
     api_url = f"https://plavecalendar.com/api/events?year={now.year}&month={now.month}"
     
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+# 기존 headers를 아래와 같이 더 상세하게 수정합니다.
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Referer': 'https://plavecalendar.com/',
+        'Origin': 'https://plavecalendar.com'
+    }
     max_retries = 3
 
     # (꿀팁) 복잡한 카테고리 암호를 예쁜 글자로 바꿔주는 마법의 사전
