@@ -1,0 +1,33 @@
+name: 15-Min Schedule Sync
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # 15분마다 실행
+  workflow_dispatch:       # 수동 실행 버튼
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Crawler
+        run: python crawler.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add plave_schedule.ics
+          # 파일에 변화가 있을 때만 커밋하도록 설정
+          git commit -m "Auto-update schedule" || echo "No changes to commit"
+          git push
