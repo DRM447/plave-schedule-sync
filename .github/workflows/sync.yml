@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4   # <--- 이 부분에 actions/ 가 빠져있었습니다!
+        uses: actions/setup-python@v5   # <--- 이 부분에 actions/ 가 빠져있었습니다!
         with:
           python-version: '3.9'
 
