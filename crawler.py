@@ -3,36 +3,53 @@ from bs4 import BeautifulSoup
 from ics import Calendar, Event
 from datetime import datetime
 import pytz
+import time  # 시간을 지연시키기 위해 새로 추가된 모듈
 
 def fetch_and_convert():
     url = "https://plavecalendar.com/"
-    # 브라우저 접속처럼 보이게 설정
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
     
-    c = Calendar()
+    max_retries = 3  # 최대 재시도 횟수
     
-    # 한국 시간(KST) 기준으로 이번 달 1일 설정
-    kst = pytz.timezone('Asia/Seoul')
-    now = datetime.now(kst)
-    first_day_of_this_month = datetime(now.year, now.month, 1, tzinfo=kst)
-    
-    # ⚠️ 중요: 아래는 예시 뼈대입니다. 실제 웹사이트의 HTML 구조를 파악해 채워넣어야 합니다.
-    schedules = soup.select('.schedule-item-class-name') 
-    
-    for item in schedules:
-        e = Event()
-        e.name = "스케줄 제목" # 실제 사이트의 제목 요소
-        # e.url = "링크 주소" # 팝업의 링크 주소
-        
-        # 임시 날짜 비교 로직 (실제로는 사이트의 날짜 텍스트를 변환해야 함)
-        # if parsed_date >= first_day_of_this_month:
-        #     e.begin = parsed_date
-        #     c.events.add(e)
+    for attempt in range(max_retries):
+        try:
+            print(f"[{attempt + 1}/{max_retries}] 사이트 접속 시도 중...")
             
-    with open('plave_schedule.ics', 'w', encoding='utf-8') as f:
-        f.writelines(c.serialize_iter())
+            # timeout=10: 10초 동안 응답이 없으면 에러로 처리하라는 뜻
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            # 사이트에서 200(정상)이 아닌 404, 500(서버 에러) 등을 보내면 강제로 에러를 발생시킴
+            response.raise_for_status() 
+            
+            # --- 접속 성공 시 아래 크롤링 로직 실행 ---
+            soup = BeautifulSoup(response.text, 'html.parser')
+            c = Calendar()
+            
+            kst = pytz.timezone('Asia/Seoul')
+            now = datetime.now(kst)
+            first_day_of_this_month = datetime(now.year, now.month, 1, tzinfo=kst)
+            
+            # (여기에 앞서 논의한 실제 스케줄 데이터 파싱 로직이 들어갑니다)
+            # schedules = soup.select('...') 
+            # for item in schedules:
+            #     ...
+            
+            with open('plave_schedule.ics', 'w', encoding='utf-8') as f:
+                f.writelines(c.serialize_iter())
+                
+            print("성공적으로 캘린더 파일을 업데이트했습니다!")
+            break  # 완료되었으므로 재시도 루프(for문)를 탈출함
+
+        except Exception as e:
+            # 에러가 발생하면 이쪽으로 넘어옵니다.
+            print(f"오류 발생: {e}")
+            
+            if attempt < max_retries - 1:
+                print("5분(300초) 뒤에 다시 시도합니다...\n")
+                time.sleep(300)  # 300초 동안 코드를 일시 정지
+            else:
+                print("최대 재시도 횟수를 초과했습니다. 이번 크롤링 작업을 취소합니다.")
+                # 여기서 실패했다는 사실을 텔레그램이나 디스코드로 내 폰에 알림 오게 짤 수도 있습니다!
 
 if __name__ == "__main__":
     fetch_and_convert()
