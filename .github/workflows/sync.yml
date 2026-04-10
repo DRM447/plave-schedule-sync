@@ -2,8 +2,9 @@ name: 15-Min Schedule Sync
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # 15분마다 실행
-  workflow_dispatch:       # 수동 실행 버튼
+    # 0분, 15분, 30분, 45분에서 각각 2분씩 뒤로 미룬 설정
+    - cron: '2,17,32,47 * * * *'
+    workflow_dispatch:       # 수동 실행 버튼
 
 jobs:
   build:
